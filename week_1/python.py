@@ -37,3 +37,17 @@ x = 12
 y = 5
 
 print(x / y)
+product_name = "Mouse"
+price = 400.99
+stock = 50
+is_active = True
+print(type(product_name))
+print(type(price))
+print(type(stock))
+print(type(is_active))
+price = 120 
+
+if price > 110:
+    print("Price is greater than 110")
+else:
+    print("Price is 110 or less")
