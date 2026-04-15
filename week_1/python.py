@@ -51,3 +51,8 @@ if price > 110:
     print("Price is greater than 110")
 else:
     print("Price is 110 or less")
+
+ 
+thislist = ["grapes", "mango", "cherry"]
+
+print(thislist)   
