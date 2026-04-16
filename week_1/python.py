@@ -56,3 +56,9 @@ else:
 thislist = ["grapes", "mango", "cherry"]
 
 print(thislist)   
+thisdict = {
+  "brand": "Ford",
+  "model": "Mustang",
+  "year": 1964
+}
+print(thisdict)
