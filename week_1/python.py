@@ -62,3 +62,16 @@ thisdict = {
   "year": 1964
 }
 print(thisdict)
+cities = ["Delhi", "Mumbai", "Chennai"]
+
+for city in cities:
+    print(city)
+
+ product = {
+    "id": 102,
+    "name": "Phone",
+    "category": "Electronics",
+    "price": 2000
+}
+
+print(product["price"])
