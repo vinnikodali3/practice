@@ -75,3 +75,44 @@ for city in cities:
 }
 
 print(product["price"])
+
+def convert_to_upper(product_name):
+    upper_name = product_name.upper()  
+    return upper_name  
+    result = convert_to_upper("vinnu")
+    print(result)
+
+id,name,city
+1,Ravi,Hyderabad
+2,Anvi,Chennai
+3,Srinika,New York
+import csv
+with open("students.csv", "r") as file:
+    
+  reader = csv.DictReader(file)
+  for row in reader:
+  print(row)
+
+ price_text = "avs" #bad value
+  try:
+    price = int(price_text)  
+    print(price)
+except:
+    print("Invalid price value")
+
+x = {
+  "name": "John",
+  "age": 30,
+  "city": "New York"
+}
+
+y = json.dumps(x)
+
+print(y)
+
+try:
+  print("Hello")
+except:
+  print("Something went wrong")
+else:
+  print("Nothing went wrong")
