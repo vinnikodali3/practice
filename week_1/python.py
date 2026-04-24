@@ -150,3 +150,9 @@ GROUP BY customer_id;
 SELECT *
 FROM customers
 WHERE id IS NULL OR name IS NULL OR age IS NULL OR city IS NULL;
+SELECT  c.name, COUNT(o.order_id) AS total_orders,
+SUM(o.amount) AS total_revenue
+FROM customers c
+JOIN orders o
+ON c.id = o.customer_id
+GROUP BY c.name;
