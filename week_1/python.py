@@ -147,3 +147,6 @@ ON c.id = o.customer_id;
 SELECT customer_id, COUNT(*) AS total_orders
 FROM orders
 GROUP BY customer_id;
+SELECT *
+FROM customers
+WHERE id IS NULL OR name IS NULL OR age IS NULL OR city IS NULL;
