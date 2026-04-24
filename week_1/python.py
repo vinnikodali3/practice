@@ -118,7 +118,7 @@ else:
   print("Nothing went wrong")
 
 
-  Week 2
+ Week 2
 SELECT CustomerName, City FROM Customers;
 SELECT * FROM Customers
 WHERE Country = 'India';
@@ -126,3 +126,24 @@ SELECT * FROM Customers
 WHERE age<30;
 SELECT * FROM Products
 ORDER BY Price ASC;
+#customers:
+id,name,age,city
+1,Ravi,25,Hyderabad
+2,Asha,30,Chennai
+3,Imran,22,Bangalore
+#orders:
+order_id,customer_id,amount
+101,1,500
+102,2,700
+103,1,300
+SELECT * FROM customers;
+SELECT *
+FROM customers
+WHERE city = 'Bangalore';
+SELECT c.name, o.amount
+FROM customers c
+JOIN orders o
+ON c.id = o.customer_id;
+SELECT customer_id, COUNT(*) AS total_orders
+FROM orders
+GROUP BY customer_id;
