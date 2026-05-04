@@ -156,3 +156,44 @@ FROM customers c
 JOIN orders o
 ON c.id = o.customer_id
 GROUP BY c.name;
+
+customers
+customer_id | name  | city      | age | updated_at
+1           | Ravi  | Hyderabad | 25  | 2024-01-10
+2           | Asha  | Chennai   | 30  | 2024-01-12
+3           | Imran | Hyderabad | 22  | 2024-01-11
+1           | Ravi  | Hyderabad | 26  | 2024-02-01
+
+orders
+order_id | customer_id | order_date  | amount | status
+101      | 1           | 2024-01-01  | 500    | completed
+102      | 2           | 2024-02-01  | 700    | completed
+103      | 1           | 2024-03-01  | 300    | returned
+104      | 3           | 2024-03-05  | 250    | completed
+
+Topic-1
+WITH completed_orders AS (
+    SELECT *
+    FROM orders
+    WHERE status = 'completed'
+),
+recent_completed_orders AS (
+    SELECT *
+    FROM completed_orders
+    WHERE order_date > '2024-02-01'
+)
+SELECT *
+FROM recent_completed_orders;
+
+Topuic-2
+SELECT customer_id, name, city, age,
+    RANK() OVER (PARTITION BY city ORDER BY age DESC) AS age_rank
+FROM customers;
+
+SELECT order_id, customer_id, amount,
+    RANK() OVER (PARTITION BY customer_id ORDER BY amount DESC) AS amount_rank
+FROM orders;
+
+Topic-3
+
+
