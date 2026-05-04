@@ -196,4 +196,35 @@ FROM orders;
 
 Topic-3
 
+SELECT order_id, customer, amount,
+    ROW_NUMBER() OVER (ORDER BY amount DESC) AS row_num,
+    RANK() OVER (ORDER BY amount DESC) AS rank_num,
+    DENSE_RANK() OVER (ORDER BY amount DESC) AS dense_rank
+FROM orders;
+
+Topic - 4
+
+SELECT order_id, customer, amount, order_date,
+    LAG(amount) OVER (PARTITION BY customer ORDER BY order_date) AS prev_amount
+FROM orders;
+
+SELECT order_id, customer, order_date,
+    LEAD(order_date) OVER (PARTITION BY customer ORDER BY order_date) AS next_order_date
+FROM orders;
+
+Topic - 5
+
+SELECT name
+FROM customers
+WHERE customer_id IN (
+    SELECT customer_id
+    FROM orders
+);
+
+SELECT DISTINCT c.name
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id;
+
+Topic-6
 
