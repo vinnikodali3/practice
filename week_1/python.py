@@ -227,4 +227,29 @@ JOIN orders o
 ON c.customer_id = o.customer_id;
 
 Topic-6
+row to keep - We should Keep the latest record.
+Logic - First grouping duplicate records
+              sort by latest date
+              We shouldkeep only the newest record
+
+Topic-7
+1#SELECT customer_id, amount
+FROM orders;
+
+2#SELECT customer_id, amount
+FROM orders
+WHERE order_date >= '2024-02-01';
+
+3- Filtering completed orders before aggregation gives correct results by excluding invalid records and also improves queryperformance by reducing the number of rows processed during aggregation
+
+Topic-8
+1 - Imagine we have a 1000-page book with no index.
+If we want to find where joins are explained we need to flip page by page until wefind it.
+Now we have the same book with an index.
+“Joins → page 245”
+We no need tosearch the whole book anymore we can directly jump to page 245.
+2 - best column to index is the date column. Because we are always filter based on time.
+
+  
+
 
