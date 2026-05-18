@@ -576,11 +576,15 @@ Step 6: Star Schema Design
 Step 7: Slowly Changing Dimensions
 Step 8: Medallion Architecture
 
+Week - 5
 
-
-
-
-
-
-
-
+Task - 1
+•	Explain in simple words why a local script fails on very large data.
+A local Python script runs on one machine. That machine has limited storage. If the file becomes extremely large, like hundreds of GBs or TBs, the machine cannot load all the data into memory. The script becomes very slow or crashes completely.
+•	Describe one real business scenario where Spark would be needed and one where Python alone is enough.
+-Scenario where Spark is needed
+A company like Netflix collects billions of user click events every day. Processing this huge amount of data on one machine would take too long. Spark is needed because it distributes the work across many machines.
+-Scenario where Python alone is enough
+A small shop owner has a CSV file with 10,000 sales records and wants monthly sales totals. Regular Python is enough because the dataset is small.
+•	Explain what parallel processing means using an everyday example
+Parallel processing means multiple workers doing parts of the work at the same time.
