@@ -374,6 +374,15 @@ Because:
 One student can take many courses
 One course can have many students
 
+Task - 5
+•	Identify primary and foreign keys in customers and orders.
+customers
+customer_id = Primary Key
+orders
+order_id = Primary Key
+customer_id = Foreign Key
+
+
 
 
 
