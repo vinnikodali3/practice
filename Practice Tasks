@@ -382,6 +382,104 @@ orders
 order_id = Primary Key
 customer_id = Foreign Key
 
+•List two natural keys and two surrogate keys.
+Natural Keys
+email
+SSN
+Surrogate Keys
+customer_id
+order_id
+Natural keys come from the real world.
+Surrogate keys are system-generated.
+
+•Explain why email may not be a safe primary key.
+People can change email addresses.
+If email changes, relationships may break.
+Primary keys should be stable, so surrogate keys are usually safer.
+
+•Design keys for Product, Order, and Payment tables.
+Product
+product_id → Primary Key
+Order
+order_id → Primary Key
+customer_id → Foreign Key
+Payment
+payment_id → Primary Key
+order_id → Foreign Key
+
+Task - 6
+•Define grain for an orders table - One row represents one order
+•Define grain for order_items table - One row represents one product inside one order
+•Explain why order-level and product-line-level data should not be mixed blindly - 
+If order_amount is repeated on every product row, revenue may get counted multiple times.
+This creates incorrect reports. Grain must stay consistent
+
+Task - 7
+•Split a messy table into customer and order tables
+| customer_name | city | order_amount |
+After
+customers
+| customer_id | customer_name | city |
+
+orders
+| order_id | customer_id | order_amount |
+This reduces duplication.
+
+•Create a denormalized reporting view from customer and order data.
+| order_id | customer_name | city | amount |
+| -------- | ------------- | ---- | ------ |
+This combines data for easier reporting
+
+•Explain when normalization is useful.
+Normalization is useful in transactional systems where:
+-Updates happen often
+-Duplicate data should be avoided
+-Data consistency matters
+
+•Explain when denormalization is useful.
+Denormalization is useful in analytics/reporting systems where:
+Fast reads matter
+Dashboards need simple queries
+Business users want easier access
+Example:
+Sales dashboards
+
+Task - 8
+•Classify examples as OLTP or OLAP.
+OLTP
+ATM transaction
+Online order placement
+Updating customer profile
+OLAP
+Monthly revenue dashboard
+Sales trend analysis
+Customer segmentation report
+
+•Explain why a dashboard should not directly query highly normalized operational tables in many cases.
+Operational tables are optimized for transactions, not heavy analytics.
+Direct dashboard queries can:
+Slow down applications
+Create performance issues
+Cause locking problems
+Warehouses are better for reporting
+
+•Compare order entry system and sales dashboard
+Order Entry System
+Saves transactions
+Fast updates
+OLTP
+Sales Dashboard
+Reads large data
+Aggregates revenue
+OLAP
+
+•Describe how source tables become warehouse tables.
+Raw operational data is extracted, cleaned, transformed, and loaded into reporting-friendly warehouse models like star schemas.
+
+Task - 9
+
+
+
 
 
 
