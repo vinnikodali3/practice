@@ -250,6 +250,75 @@ Now we have the same book with an index.
 We no need tosearch the whole book anymore we can directly jump to page 245.
 2 - best column to index is the date column. Because we are always filter based on time.
 
-  
+
+
+Week - 4
+Task-1
+*Identify at Least Five Entities - Customer, Restaurant, Order, Driver, Payment
+*For each entity, three possible attributes 
+Customer - Customer name, phone number, Customer_id
+Restaurant - Restaurant name, location, restaurant_id
+Order - Order_id, order_date, order_amount
+Driver - Driver name, driver_id, phone number
+Payment - Payment_id, payment_amount, payment_date
+*Explain how Customer, Restaurant, Order, and Driver are related - In a food delivery app, Customer, Restaurant, and Driver are connected through the Orders table. A customer places orders, restaurants prepare those orders, and drivers deliver them. Most relationships are one-to-many because one customer, restaurant, or driver can be associated with multiple orders
+*Convert one business sentence into a rough table design
+A company wants to track customer purchases
+| customer_id | customer_name | city   |
+| 1           | Ravi          | Dallas |
+
+| order_id | customer_id | amount |
+| 101      | 1           | 500    |
+The business wants to track purchases, so we need Customer & Order tables
+The orders table stores customer_id to show customer placed the order.
+Task-2
+*Identify entities and attributes for a banking app
+Entity: Customer
+Attributes:
+customer_id
+customer_name
+phone_number
+
+Entity: Account
+Attributes:
+account_number
+account_type
+balance
+
+Entity: Transaction
+Attributes:
+transaction_id
+transaction_amount
+transaction_date
+
+*Separate attributes that belong to Customer and Account.
+Customer
+customer_name
+email
+phone_number
+address
+
+Account
+account_number
+balance
+account_type
+accout created_date
+
+*Given a messy list of fields, group them under correct entities
+Fields:
+customer_name, account_balance, transaction_date, email, account_type
+Customer
+customer_name
+email
+Account
+account_balance
+account_type
+Transaction
+transaction_date
+
+*Explain why order_amount belongs to Order and not Customer
+order_amount changes for every order. A customer can place many orders with different amounts. If we store order_amount inside Customer, we would lose proper transaction-level detail.
+So order_amount belongs to the Order table because it describes the order, not the customer.
+
 
 
