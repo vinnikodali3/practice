@@ -385,5 +385,3 @@ customer_id = Foreign Key
 
 
 
-
-
