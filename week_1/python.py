@@ -320,5 +320,61 @@ transaction_date
 order_amount changes for every order. A customer can place many orders with different amounts. If we store order_amount inside Customer, we would lose proper transaction-level detail.
 So order_amount belongs to the Order table because it describes the order, not the customer.
 
+Task - 3
+*Identify relationship type for Customer and Order.
+One customer can place many orders.
+One order belongs to one customer.
+So this is a one-to-many relationship
+*Identify relationship type for Product and Category.
+Usually many products belong to one category.
+Example:
+Many products can belong to Electronics.
+So Category → Product is one-to-many
+*Identify relationship type for Doctor and Patient in a hospital system.
+One doctor can treat many patients.
+One patient can also visit many doctors.
+So this becomes a many-to-many relationship.
+A bridge table may be needed
+*Explain why relationship direction matters
+Relationship direction helps us understand where the foreign key should go.
+Example:
+One customer can have many orders.
+So customer_id should be stored in the Orders table, not the Customers table.
+Wrong direction creates confusion and incorrect joins.
+
+Task - 4
+•Design a bridge table for Employee and Project.
+| employee_id | employee_name |
+| 1           | Ravi          |
+
+| project_id | project_name   |
+| 12         | Data Migration |
+
+| employee_id | project_id |
+| 1           | 12         |
+The bridge table connects employees and projects.
+
+•Design an order_items table for Orders and Products.
+| order_id | product_id | quantity | price |
+| 101      | 501        | 6       | 67    |
+This table connects orders and products.
+
+•Explain why storing product_ids as comma-separated values inside Orders is a bad idea.
+Example:
+101 → "501,502,503"
+Difficult to join
+Hard to filter
+Breaks normalization
+Bridge tables are cleaner and scalable.
+
+•Identify the bridge table in a learning management system.
+students - courses
+Bridge table :student_course
+Because:
+One student can take many courses
+One course can have many students
+
+
+
 
 
