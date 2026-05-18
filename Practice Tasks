@@ -566,6 +566,16 @@ Duplicates
 Nulls
 Bad formats
 
+Mini project: E-commerce warehouse model
+Step 1: Identify Main Entities
+Step 2: Define Attributes
+Step 3: Relationships
+Step 4: Define Keys
+Step 5: Fact and Dimension Tables
+Step 6: Star Schema Design
+Step 7: Slowly Changing Dimensions
+Step 8: Medallion Architecture
+
 
 
 
