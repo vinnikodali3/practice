@@ -382,6 +382,203 @@ orders
 order_id = Primary Key
 customer_id = Foreign Key
 
+•List two natural keys and two surrogate keys.
+Natural Keys
+email
+SSN
+Surrogate Keys
+customer_id
+order_id
+Natural keys come from the real world.
+Surrogate keys are system-generated.
+
+•Explain why email may not be a safe primary key.
+People can change email addresses.
+If email changes, relationships may break.
+Primary keys should be stable, so surrogate keys are usually safer.
+
+•Design keys for Product, Order, and Payment tables.
+Product
+product_id → Primary Key
+Order
+order_id → Primary Key
+customer_id → Foreign Key
+Payment
+payment_id → Primary Key
+order_id → Foreign Key
+
+Task - 6
+•Define grain for an orders table - One row represents one order
+•Define grain for order_items table - One row represents one product inside one order
+•Explain why order-level and product-line-level data should not be mixed blindly - 
+If order_amount is repeated on every product row, revenue may get counted multiple times.
+This creates incorrect reports. Grain must stay consistent
+
+Task - 7
+•Split a messy table into customer and order tables
+| customer_name | city | order_amount |
+After
+customers
+| customer_id | customer_name | city |
+
+orders
+| order_id | customer_id | order_amount |
+This reduces duplication.
+
+•Create a denormalized reporting view from customer and order data.
+| order_id | customer_name | city | amount |
+| -------- | ------------- | ---- | ------ |
+This combines data for easier reporting
+
+•Explain when normalization is useful.
+Normalization is useful in transactional systems where:
+-Updates happen often
+-Duplicate data should be avoided
+-Data consistency matters
+
+•Explain when denormalization is useful.
+Denormalization is useful in analytics/reporting systems where:
+Fast reads matter
+Dashboards need simple queries
+Business users want easier access
+Example:
+Sales dashboards
+
+Task - 8
+•Classify examples as OLTP or OLAP.
+OLTP
+ATM transaction
+Online order placement
+Updating customer profile
+OLAP
+Monthly revenue dashboard
+Sales trend analysis
+Customer segmentation report
+
+•Explain why a dashboard should not directly query highly normalized operational tables in many cases.
+Operational tables are optimized for transactions, not heavy analytics.
+Direct dashboard queries can:
+Slow down applications
+Create performance issues
+Cause locking problems
+Warehouses are better for reporting
+
+•Compare order entry system and sales dashboard
+Order Entry System
+Saves transactions
+Fast updates
+OLTP
+Sales Dashboard
+Reads large data
+Aggregates revenue
+OLAP
+
+•Describe how source tables become warehouse tables.
+Raw operational data is extracted, cleaned, transformed, and loaded into reporting-friendly warehouse models like star schemas.
+
+Task - 9
+•Identify facts and dimensions for an e-commerce dataset
+-Facts
+sales_amount
+quantity
+discount
+-Dimensions
+customer
+product
+date
+store
+•List metrics for fact_sales
+sales_amount
+quantity_sold
+profit
+discount_amount
+•List descriptive attributes for dim_product
+product_name
+category
+brand
+color
+•Classify examples as transaction fact or snapshot fact
+Each customer purchase-Transaction Fact
+Daily store revenue summary-Snapshot Fact
+
+Task - 10
+•Design a star schema for sales reporting
+Center:
+fact_sales
+
+Connected dimensions:
+dim_customer
+dim_product
+dim_date
+dim_store
+Fact table stores metrics
+Dimensions store descriptions
+•Explain which design is easier for dashboards
+Star schema is easier because:
+Fewer joins
+Simpler queries
+More business-friendly
+•Compare star and snowflake trade-offs
+-Star Schema
+Simple
+Faster reporting
+Easy to understand
+-Snowflake Schema
+More normalized
+Less duplication
+More joins
+
+Task - 11
+•Given customer city changes, decide Type 1 or Type 2
+history is not important: Type 1
+history must be preserved: Type 2
+•Design columns needed for a Type 2 dimension
+customer_id , city , start_date , end_date , is_current
+•Explain what is_current means
+It shows whether the row is the latest active version.
+•Explain one situation where Type 1 is enough
+Correcting spelling mistakes
+
+Task- 12
+•Classify example tables into raw, cleaned, or curated layer
+Bronze
+Original CSV files
+
+Silver
+Nulls fixed, formats standardized
+
+Curated/Gold
+Business-ready reporting tables
+
+•Design a medallion flow for e-commerce orders
+Raw: orders.csv
+Cleaned: Validated orders table
+Curated: fact_sales + dimensions
+
+•Explain why analysts should usually use curated data instead of raw files
+Curated data is:
+Clean
+Trusted
+Reporting-ready
+
+Raw data may contain:
+Duplicates
+Nulls
+Bad formats
+
+Mini project: E-commerce warehouse model
+Step 1: Identify Main Entities
+Step 2: Define Attributes
+Step 3: Relationships
+Step 4: Define Keys
+Step 5: Fact and Dimension Tables
+Step 6: Star Schema Design
+Step 7: Slowly Changing Dimensions
+Step 8: Medallion Architecture
+
+
+
+
 
 
 
