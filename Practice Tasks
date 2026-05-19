@@ -618,3 +618,37 @@ RDDs give more control but require more manual work and optimization
 
 Task - 4
 •Write a chain of three transformations on the events DataFrame and explain that nothing has executed yet.
+filter() 
+select() 
+groupBy()
+But even after writing all these lines, Spark has not processed any data yet because transformations in Spark are lazy. Spark only creates execution plan. It waits until an action like show(), count(), or write() called.
+•Add a show() at the end and explain what changes
+By adding show() Spark starts execution because show() is an action
+Spark will now:
+Read the data
+Filter rows
+Select required columns
+Group by event_type
+Count records
+Display the result
+•Explain why calling show() twice without caching may cause Spark to read and process the data twice.
+when show() is called again, Spark starts from the beginning again,
+Read the file again
+Apply filter again
+Apply select again
+Apply groupBy again
+Display the result again
+That means the same work is repeated twice.
+•Explain lazy evaluation using a cooking analogy.
+-recipe for making biryani
+ steps:
+Wash rice
+Cut vegetables
+Add spices
+Cook the rice
+At this point, nothing is actually cooked yet. We are only preparing the instructions.
+This is exactly how Spark transformations work and called lazy evaluation.
+Cooking starts only when we turn on the stove and begin preparing the food.
+In Spark, this happens when an action is called.
+
+Task - 5
