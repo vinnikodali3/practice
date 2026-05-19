@@ -606,3 +606,15 @@ The driver controls the whole Spark application. It creates the execution plan a
 
 Task - 3
 •Read the events dataset as a DataFrame and print the first 5 rows using show().
+df = spark.read.csv('events.csv', header=True, inferSchema=True)
+df.show(5)
+•Explain in plain English why DataFrames are preferred over RDDs for most work today.
+DataFrames are preferred because:
+Less code is needed
+Easier to read
+Supports SQL-like operations
+Better performance automatically
+RDDs give more control but require more manual work and optimization
+
+Task - 4
+•Write a chain of three transformations on the events DataFrame and explain that nothing has executed yet.
