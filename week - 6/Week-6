@@ -1,0 +1,110 @@
+Task - 1
+Q1. No dependency management - If the first script fails, the second script may still run and process incomplete data.
+No automatic retries- If a database or API temporarily fails, the script stops completely unless someone reruns it manually.
+No monitoring or visibility-There is no dashboard to check which step failed or why it failed.
+Q2. Airflow adds scheduling, dependency management, retries, monitoring, logging, and workflow orchestration to Python pipelines
+Q3. In a logistics company:
+First task → validate shipment file
+Second task → transform records
+Third task → load into warehouse
+If validation fails because the file is missing, transform and load should NOT run. Otherwise bad or incomplete data enters the warehouse. 
+
+Task - 2
+Q1. 
+from airflow import DAG
+from airflow.operators.python import PythonOperator
+from datetime import datetime
+
+def ingest():
+    print("Ingesting data")
+
+def validate():
+    print("Validating data")
+
+def report():
+    print("Generating report")
+
+with DAG(
+    dag_id='daily_pipeline',
+    start_date=datetime(2024,1,1),
+    schedule_interval='0 0 * * *',
+    catchup=False
+) as dag:
+
+    ingest_task = PythonOperator(
+        task_id='ingest',
+        python_callable=ingest
+    )
+
+    validate_task = PythonOperator(
+        task_id='validate',
+        python_callable=validate
+    )
+
+    report_task = PythonOperator(
+        task_id='report',
+        python_callable=report
+    )
+
+    ingest_task >> validate_task >> report_task
+Q3. 
+    Airflow tries to run all missed DAG runs from the start date until today
+    This is called backfilling. If catchup=True accidentally in production, it can overload systems with hundreds of historical runs.
+ Q4.
+    dag_id is the unique name of the DAG inside Airflow
+    Airflow uses it to:
+
+      Track runs
+      Store metadata
+      Display the DAG in UI
+If two DAGs have the same dag_id, Airflow gets confused and throws errors
+
+Task - 3
+Q1.
+Ingest Task-
+retries = 5
+retry_delay = 20 minutes
+Transform Task-
+retries = 2
+retry_delay = 5 minutes
+This gives more patience to the ingest task because late-arriving files are common
+Q2.
+If DAG does not finish within 3 hours, Airflow records an SLA miss and it will send alerts to support engineers. The tasks may still continue running, but the operations team is notified that the pipeline is late
+Q3.
+Failed : task itself ran and encountered an error
+Upstream_failed : The task never ran because one of its dependencies failed
+
+Task - 4
+Q1.
+plain INSERT adds new rows every time it runs. If the task is rerun, duplicate records are inserted, causing incorrect results.
+Q2.
+DELETE FROM shipments
+WHERE shipment_date = '2024-01-15';
+INSERT INTO shipments
+SELECT *
+FROM staging_shipments
+WHERE shipment_date = '2024-01-15';
+Q3.
+context['ds'] provides the execution date of the current Airflow run as a string in YYYY-MM-DD format
+Q4.
+Because every rerun replaces the same partition instead of creating additional files. Running the task multiple times produces the same final output
+
+Task - 5
+Q1.
+file_check
+      |
+ ------------------
+ |                |
+row_validation   schema_validation
+      \          /
+       \        /
+     load_warehouse
+Q2.
+Airflow waits for all upstream tasks to succeed before running the downstream task. Since transform_region_2 failed, load_warehouse will not run
+Q3.
+
+Q4.
+Circular dependencies create an infinite loop where tasks keep waiting for each other. Airflow requires workflows to move in one direction only
+
+Task - 6
+

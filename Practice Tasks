@@ -576,11 +576,79 @@ Step 6: Star Schema Design
 Step 7: Slowly Changing Dimensions
 Step 8: Medallion Architecture
 
+Week - 5
 
+Task - 1
+•	Explain in simple words why a local script fails on very large data.
+A local Python script runs on one machine. That machine has limited storage. If the file becomes extremely large, like hundreds of GBs or TBs, the machine cannot load all the data into memory. The script becomes very slow or crashes completely.
+•	Describe one real business scenario where Spark would be needed and one where Python alone is enough.
+-Scenario where Spark is needed
+A company like Netflix collects billions of user click events every day. Processing this huge amount of data on one machine would take too long. Spark is needed because it distributes the work across many machines.
+-Scenario where Python alone is enough
+A small shop owner has a CSV file with 10,000 sales records and wants monthly sales totals. Regular Python is enough because the dataset is small.
+•	Explain what parallel processing means using an everyday example
+Parallel processing means multiple workers doing parts of the work at the same time.
 
+Task - 2
+-Draw a rough diagram showing driver, executors, and cluster manager and explain each component in one sentence
+Driver - brain of the Spark application. It plans the work
+Executors - Workers that actually process the data
+Cluster Manager - Gives resources and manages machines
 
+•Explain what happens when an executor runs out of memory during a large sort operation.
+-If an executor runs out of memory during operations:
+task may fail
+job can become very slow.
+Sometimes the entire Spark job fails
 
+•Explain why the driver is important and what would happen if it failed
+The driver controls the whole Spark application. It creates the execution plan and sends work to executors if the driver fails, the entire Spark application stops because executors depend on the driver for instructions.
 
+Task - 3
+•Read the events dataset as a DataFrame and print the first 5 rows using show().
+df = spark.read.csv('events.csv', header=True, inferSchema=True)
+df.show(5)
+•Explain in plain English why DataFrames are preferred over RDDs for most work today.
+DataFrames are preferred because:
+Less code is needed
+Easier to read
+Supports SQL-like operations
+Better performance automatically
+RDDs give more control but require more manual work and optimization
 
+Task - 4
+•Write a chain of three transformations on the events DataFrame and explain that nothing has executed yet.
+filter() 
+select() 
+groupBy()
+But even after writing all these lines, Spark has not processed any data yet because transformations in Spark are lazy. Spark only creates execution plan. It waits until an action like show(), count(), or write() called.
+•Add a show() at the end and explain what changes
+By adding show() Spark starts execution because show() is an action
+Spark will now:
+Read the data
+Filter rows
+Select required columns
+Group by event_type
+Count records
+Display the result
+•Explain why calling show() twice without caching may cause Spark to read and process the data twice.
+when show() is called again, Spark starts from the beginning again,
+Read the file again
+Apply filter again
+Apply select again
+Apply groupBy again
+Display the result again
+That means the same work is repeated twice.
+•Explain lazy evaluation using a cooking analogy.
+-recipe for making biryani
+ steps:
+Wash rice
+Cut vegetables
+Add spices
+Cook the rice
+At this point, nothing is actually cooked yet. We are only preparing the instructions.
+This is exactly how Spark transformations work and called lazy evaluation.
+Cooking starts only when we turn on the stove and begin preparing the food.
+In Spark, this happens when an action is called.
 
-
+Task - 5
