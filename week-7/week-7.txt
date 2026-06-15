@@ -1,1 +1,139 @@
 Task - 1
+Q1. Running monthly revenue reports directly on the billing database means that analytical query is competing with live invoice processing for the same CPU and memory so invoice processing slows down, and the analytics query is also slow because the database isn't designed for scanning millions of rows at once. That's why we have a separate warehouse
+Q2. 
+First difference — storage model. OLTP uses row-based storage, optimised for writing and reading one row at a time. OLAP uses columnar storage, optimised for reading specific columns across millions of rows.
+Second difference — what they're optimised for. OLTP is built for fast inserts, updates, and single-row lookups like processing a payment. OLAP is built for heavy aggregations and analytical scans like calculating total revenue by region for the whole year.
+Third difference — data model. OLTP tables are highly normalised 3rd normal form to avoid duplication and support fast writes. OLAP tables are denormalised star schema with wide fact tables to avoid joins at query time and make reads faster.
+Q3
+OLTP database has a fixed amount of CPU, memory, and disk I/O. When a billing transaction runs like inserting a new invoice it uses a small slice of those resources and finishes in milliseconds.
+But when an analyst runs a heavy aggregation like summing all invoices for the past year that query grabs a large portion of the same resources. Now the billing transactions have to wait in line. Processing that used to take milliseconds might take seconds or even time out.
+In a busy system, if multiple analysts do this at the same time, invoice processing can effectively stop. This is called resource contention, and it's the core reason you need a separate warehouse for analytics.
+
+Task - 2
+Q1.
+"Imagine a spreadsheet with 50 columns and a billion rows. In a row-based database, all 50 columns of row 1 are stored together, then all 50 of row 2, and so on. If I run a query that only needs the Name column and the Amount column, the database still reads all 50 columns for every row and throws 48 away. That's a lot of wasted work."
+In a columnar store, think of the spreadsheet stored sideways. Column A all the names is in one file. Column B all the amounts is in another. Columns C through Z are in separate files. If my query only needs columns A and B, it reads just those two files. It never touches columns C through Z.
+On a billion-row table with 50 columns, that's the difference between reading 50 billion values versus 2 billion values. 25 times less data 25 times faster and 25 times cheaper for that query.
+Q2.
+So 4 out of 20 columns — that's one fifth. BigQuery reads one fifth of the data it would if I ran SELECT star.
+Q3.
+In a traditional database, the machine that stores your data is also the machine that processes your queries. They're tied together. If you need more processing power, you have to upgrade the whole machine, even if the data size hasn't changed
+In modern cloud warehouses like BigQuery, Snowflake, or Redshift Serverless, compute the processing power and storage where the data lives are completely separate. You can scale them independently.
+business benefit: say nobody queries the warehouse for 8 hours overnight. With compute and storage separated, you turn the compute off completely. You only pay for storage during those hours. In the old model, your database server is running and costing money 24 hours a day whether it's doing work or not. That's a significant cost difference at scale
+
+Task - 3
+Q1.
+Staging is a landing zone. Its only job is to receive data from the source without losing any of it. The moment you put a typed column in staging say a DATE column — you're making a promise: every value must be a valid date. If the source sends '2024-99-99', the load fails with a type error. Your whole pipeline stops
+By using VARCHAR for everything, we remove that risk. Whatever the source sends valid date, broken date, null, garbage string it gets stored. The load always succeeds. We deal with data quality in the curated layer, where we have proper validation logic
+Q2.
+Staging Layer
+stg_billing_raw
+stg_usage_raw
+stg_support_raw
+
+Curated Layer
+fact_billing
+fact_usage
+dim_customer
+dim_product
+
+Reporting Layer
+rpt_monthly_revenue
+rpt_customer_health
+rpt_feature_usage
+Q3.
+Only data engineers should access staging for debugging and validation.
+Analysts should use curated or reporting tables because staging data is raw and may contain errors.
+
+Task - 4
+Q2.
+When a partition filter is used, BigQuery reads only the required partitions. This reduces the amount of data scanned, improves performance, and lowers query cost.
+Q3.
+DISTKEY controls how data is distributed across Redshift nodes. When tables use the same DISTKEY, joins are faster because matching rows are stored on the same node.
+
+Task - 5
+Q1.
+TRUNCATE TABLE dim_customer;
+INSERT INTO dim_customer
+SELECT *
+FROM stg_customer;
+Q2.
+MERGE INTO fact_billing target
+USING stg_billing_raw source
+ON target.invoice_id = source.invoice_id
+
+WHEN MATCHED THEN
+UPDATE SET
+invoice_amount = source.invoice_amount,
+invoice_date = source.invoice_date
+
+WHEN NOT MATCHED THEN
+INSERT
+(invoice_id,
+ customer_id,
+ invoice_amount,
+ invoice_date)
+VALUES
+(source.invoice_id,
+ source.customer_id,
+ source.invoice_amount,
+ source.invoice_date);
+ Q3.
+Compare source and target records
+Use checksums/hash values
+Use CDC (Change Data Capture)
+Perform periodic full refresh
+
+Task - 6
+Q1.
+-- BEFORE: expensive
+SELECT *
+FROM fact_billing
+WHERE region = 'APAC';
+-- Problems: reads all columns, no partition filter = full table scan
+
+-- AFTER: cost-efficient
+SELECT  invoice_date,
+        customer_id,
+        customer_segment,
+        invoice_amount
+FROM    fact_billing
+WHERE   invoice_date >= '2024-01-01'  -- partition filter: skips pre-2024
+  AND   region = 'APAC';             
+Q2.
+dashboard may have been reading a small amount of data. Today it is likely scanning much more data because of changes such as missing date filters, use of SELECT *, additional joins, or increased data volume. Since cloud warehouses charge based on data scanned, reading more data increases the cost
+Q3.
+APPROX_COUNT_DISTINCT is useful when we need fast results and a small amount of error is acceptable, such as dashboards and analytics reports. Exact COUNT DISTINCT should be used for financial, audit, or compliance reporting where accuracy is critical
+ 
+Task - 7
+Q1.
+Redshift table
+CREATE TABLE fact_billing
+(
+invoice_id VARCHAR(50),
+customer_id VARCHAR(50) DISTKEY,
+invoice_amount DECIMAL(12,2),
+invoice_date DATE
+)
+SORTKEY(invoice_date);
+
+BigQuery 
+CREATE TABLE fact_billing
+(
+invoice_id STRING,
+customer_id STRING,
+invoice_amount NUMERIC,
+invoice_date DATE
+)
+PARTITION BY invoice_date
+CLUSTER BY customer_id;
+In Redshift, I use DISTKEY and SORTKEY to optimize joins and filtering. In BigQuery, I use PARTITION BY and CLUSTER BY because Google automatically handles data distribution. Redshift requires cluster management, while BigQuery is fully serverless.
+Q2.
+BigQuery is a serverless warehouse. Google automatically distributes data across its infrastructure. Since data distribution is handled internally, users do not need to configure DISTKEYs like in Redshift.
+Q3.
+I would choose Synapse when the organization is heavily invested in Azure services. Synapse integrates seamlessly with Azure Data Factory, Azure Data Lake Storage, Power BI, and Azure Databricks.
+
+Task - 8
+Q1.
+
+
