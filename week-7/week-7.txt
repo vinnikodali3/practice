@@ -194,28 +194,5 @@ The reporting refresh is idempotent because it deletes the current month's recor
 Q4.
 If the MERGE runs twice with the same data, the result remains unchanged. Existing records are updated with the same values and new records are not inserted again. This makes MERGE safe and reliable for incremental loading.
 
-Mini Project
 
-Billing CSV File
-      |
-      v
-Staging Table
-(stg_billing_raw)
-      |
-Validation
-(Row count, NULL checks)
-      |
-      v
-MERGE
-      |
-      v
-Curated Table
-(fact_billing)
-      |
-      v
-Reporting Table
-(rpt_monthly_revenue)
-      |
-      v
-Power BI / Tableau Dashboard
 

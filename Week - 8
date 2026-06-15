@@ -1,0 +1,11 @@
+Task - 1
+Q1.
+Streaming is used:
+Fraud detection in online payments – suspicious transactions must be detected immediately
+Food delivery tracking – customers need live updates on their orders
+Stock market trading – prices change every second and decisions must be made instantly
+
+Batch processing is sufficient when:
+Monthly payroll processing
+Daily sales report generation
+Weekly customer analytics reports
