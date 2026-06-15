@@ -652,3 +652,52 @@ Cooking starts only when we turn on the stove and begin preparing the food.
 In Spark, this happens when an action is called.
 
 Task - 5
+Q1.
+df = spark.read.csv("events.csv", header=True)
+
+result = df.select(
+    "user_id",
+    "event_type",
+    "country"
+)
+
+result.write.mode("overwrite").parquet("events_parquet")
+Q2.
+csv_count = df.count()
+
+parquet_df = spark.read.parquet("events_parquet")
+parquet_count = parquet_df.count()
+If both counts are equal, all records were written correctly.
+Q3.
+Partitioning by event_date helps Spark read only the required date folders instead of scanning the entire dataset. This improves query performance and reduces processing costs.
+Q4.
+Spark automatically guesses data types. If the source data changes, Spark may assign incorrect types, causing data quality issues or job failures. Production systems usually define schemas explicitly.
+
+Task - 6
+Q1.
+purchase_events = df.filter(
+    df.event_type == "purchase"
+)
+
+purchase_events.count()
+Q2.
+The row with NULL user_id remains in the result because a left join keeps all records from the events table.
+The user_name column for that row will also be NULL because no matching user exists.
+Q3.
+from pyspark.sql import functions as F
+
+df.groupBy(
+    "country",
+    "event_type"
+).agg(
+    F.count("*").alias("event_count"),
+    F.sum("session_time_sec").alias("total_session_time")
+).show()
+Q4.
+df = df.withColumn(
+    "session_minutes",
+    df.session_time_sec / 60
+)
+
+Task - 7
+
