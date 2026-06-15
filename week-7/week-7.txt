@@ -135,5 +135,87 @@ I would choose Synapse when the organization is heavily invested in Azure servic
 
 Task - 8
 Q1.
+-- ══ STEP 1: Load staging (full load — staging is small, rebuilt every run) ══
+TRUNCATE TABLE stg_billing_raw;
+COPY stg_billing_raw
+FROM 's3://data-lake/billing/2024-01-15/'
+IAM_ROLE 'arn:aws:iam::123456789:role/RedshiftS3Role'
+CSV IGNOREHEADER 1;
 
+-- ══ STEP 2: Validate before touching curated ══════════════════════════════
+SELECT
+    COUNT(*)                                                AS total_rows,
+    SUM(CASE WHEN invoice_id     IS NULL THEN 1 ELSE 0 END) AS null_ids,
+    SUM(CASE WHEN invoice_amount IS NULL THEN 1 ELSE 0 END) AS null_amounts
+FROM stg_billing_raw;
+-- If null_amounts / total_rows > 0.01 → STOP pipeline, raise alert
+
+-- ══ STEP 3: Incremental MERGE into curated ════════════════════════════════
+MERGE INTO fact_billing AS target
+USING stg_billing_raw AS source
+ON target.invoice_id = source.invoice_id
+WHEN MATCHED THEN
+    UPDATE SET
+        invoice_amount = CAST(source.invoice_amount AS DECIMAL(12,2)),
+        invoice_date   = CAST(source.invoice_date   AS DATE)
+WHEN NOT MATCHED THEN
+    INSERT (invoice_id, customer_id, invoice_amount, invoice_date)
+    VALUES (source.invoice_id, source.customer_id,
+            CAST(source.invoice_amount AS DECIMAL(12,2)),
+            CAST(source.invoice_date   AS DATE));
+
+-- ══ STEP 4: Refresh reporting table (idempotent — delete then insert) ══════
+DELETE FROM rpt_monthly_revenue
+WHERE month = DATE_TRUNC('month', CURRENT_DATE);
+
+INSERT INTO rpt_monthly_revenue
+SELECT DATE_TRUNC('month', f.invoice_date) AS month,
+       c.customer_segment,
+       SUM(f.invoice_amount)               AS total_revenue,
+       COUNT(DISTINCT f.customer_id)       AS active_customers
+FROM   fact_billing f
+JOIN   dim_customer c ON f.customer_id = c.customer_id
+WHERE  f.invoice_date >= DATE_TRUNC('month', CURRENT_DATE)
+GROUP  BY 1, 2;
+
+Q2.
+SELECT
+    COUNT(*)                                                  AS total_rows,
+    SUM(CASE WHEN invoice_amount IS NULL THEN 1 ELSE 0 END)   AS null_count,
+    ROUND(
+        100.0 * SUM(CASE WHEN invoice_amount IS NULL THEN 1 ELSE 0 END)
+              / NULLIF(COUNT(*), 0),
+        2
+    )                                                         AS null_pct
+FROM stg_billing_raw;
+
+Q3.
+The reporting refresh is idempotent because it deletes the current month's records before inserting fresh data. Running it multiple times does not create duplicates or incorrect totals.
+Q4.
+If the MERGE runs twice with the same data, the result remains unchanged. Existing records are updated with the same values and new records are not inserted again. This makes MERGE safe and reliable for incremental loading.
+
+Mini Project
+
+Billing CSV File
+      |
+      v
+Staging Table
+(stg_billing_raw)
+      |
+Validation
+(Row count, NULL checks)
+      |
+      v
+MERGE
+      |
+      v
+Curated Table
+(fact_billing)
+      |
+      v
+Reporting Table
+(rpt_monthly_revenue)
+      |
+      v
+Power BI / Tableau Dashboard
 
