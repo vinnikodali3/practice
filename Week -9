@@ -1,0 +1,35 @@
+Topic - 1
+Q1.
+created an S3 bucket called healthcare-datalake and organized it using a raw layer structure
+s3://healthcare-datalake/
+└── raw/
+    └── claims/
+        └── 2024-01-15/
+            ├── claims_partner_a.csv
+            ├── claims_partner_b.csv
+            └── claims_partner_c.csv
+The three CSV files were uploaded to the raw layer because this layer stores the original source data exactly as received from external partners. This helps in auditing and troubleshooting if any data issues occur later in the pipeline.
+Q2.
+import boto3
+
+def check_file_exists(bucket, key):
+    s3 = boto3.client('s3')
+
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+        return True
+    except:
+        return False
+
+result = check_file_exists(
+    'healthcare-datalake',
+    'raw/claims/2024-01-15/claims_partner_a.csv'
+)
+print(result)        
+This function checks if a file exists before starting downstream processing.
+Q4.
+The raw layer should have versioning enabled because it contains the original source files received from partners. If a file is accidentally overwritten or deleted, previous versions can be restored.
+The curated layer contains processed data that can be regenerated from raw data if needed. Since it is recreated regularly, versioning is usually not necessary and can increase storage costs.
+
+Topic - 2
+Q1.
