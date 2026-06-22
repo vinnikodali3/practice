@@ -144,3 +144,7 @@ Group A = Fraud Service
 Group B = Analytics Service
 Both groups receive every message from the topic.
 One group's reading does not affect another group.
+
+Task - 5
+Q1.
+
