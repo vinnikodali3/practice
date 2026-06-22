@@ -147,4 +147,104 @@ One group's reading does not affect another group.
 
 Task - 5
 Q1.
+Kafka stores messages for a configured retention period. To keep messages for 3 days, we need to set the retention time in milliseconds
+1 day = 24 × 60 × 60 × 1000 = 86,400,000 ms
+3 days = 259,200,000 ms
+kafka-configs.sh --alter \
+--entity-type topics \
+--entity-name orders \
+--add-config retention.ms=259200000 \
+--bootstrap-server localhost:9092
+This command updates the orders topic configuration so Kafka keeps messages for 3 days. After 3 days, older messages are automatically deleted, even if they have already been consumed.
+Q2.
+from kafka import KafkaConsumer
+import json
+
+consumer = KafkaConsumer(
+    'orders',
+    bootstrap_servers=['localhost:9092'],
+    group_id='fraud-detection-service',
+    value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+    enable_auto_commit=False,      # MANUAL commit — we control when to commit
+    auto_offset_reset='earliest'
+)
+
+for message in consumer:
+    order = message.value
+    try:
+        # Do the actual work first
+        process_fraud_score(order)
+        # Only commit AFTER successful processing
+        consumer.commit()
+        print(f"Processed and committed: offset={message.offset} partition={message.partition}")
+    except Exception as e:
+        # Do NOT commit on error — message will be replayed on restart
+        print(f"ERROR processing {order.get('order_id')}: {e}")
+        print("Offset NOT committed — will retry on restart")
+        # Optional: break or continue depending on error handling strategy
+Q3.
+kafka-consumer-groups.sh --reset-offsets \
+--group fraud-detection-service \
+--topic orders \
+--to-earliest \
+--execute \
+--bootstrap-server localhost:9092
+Kafka changes the consumer group's position to the first available message.
+The next time the consumer starts, it begins reading from the earliest retained offset.
+All retained messages are processed again.This process is called Replay.
+It is useful when:
+ A bug is fixed
+ Data needs to be reprocessed
+
+ Topic - 6
+ Q1.
+ At-Least-Once Delivery means Kafka guarantees that every message will be processed at least one time. No messages are lost, but sometimes the same message may be processed more than once.
+it Works like
+ Consumer reads a message
+ Consumer processes the message
+ Consumer commits the offset
+If the consumer crashes after processing but before committing the offset, Kafka thinks the message was never completed.
+When the consumer restarts, Kafka sends the same message again.
+Q2.
+Most companies use at-least-once delivery with idempotent processing because duplicate messages do not affect the final result. This provides the same business outcome as exactly-once delivery while being much simpler to implement.
+Q3.
+Payment processing requires exactly-once delivery because duplicate processing can charge customers multiple times. At-least-once delivery is not acceptable since replayed messages could create financial loss and compliance issues
+
+Topic- 7
+Q1.
+from kafka import KafkaProducer
+import json
+
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    key_serializer=lambda k: k.encode('utf-8'),
+    value_serializer=lambda v: json.dumps(v).encode('utf-8')
+)
+
+order_event = {
+    "order_id": "ORD1001",
+    "customer_id": "CUST101",
+    "amount": 750,
+    "timestamp": "2026-06-22T10:30:00"
+}
+
+producer.send(
+    "marketplace.orders.v1",
+    key=order_event["customer_id"],
+    value=order_event
+)
+
+producer.flush()
+
+Q2.
+Kafka guarantees message ordering only within a partition. To maintain ordering for related events, we use a message key such as customer_id so that all related events are routed to the same partition.
+Q3.
+| Topic                            | Purpose                  |
+| marketplace.orders.v1            | Stores order events      |
+| marketplace.payments.v1          | Stores payment events    |
+| marketplace.inventory-updates.v1 | Stores inventory changes |
+| marketplace.fraud-scores.v1      | Stores fraud alerts      |
+
+Topic - 8
+Q1.
 
