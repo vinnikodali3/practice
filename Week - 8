@@ -9,3 +9,142 @@ Batch processing is sufficient when:
 Monthly payroll processing
 Daily sales report generation
 Weekly customer analytics reports
+Q2.
+Near-real-time means data is processed within a few seconds or minutes after it is created.
+Example:
+Customer places an order at 2:00 PM
+Kafka processes it by 2:00:03 PM
+Real-time means there is almost zero delay between the event occurring and processing.
+So:
+Real-time = immediate response
+Near-real-time = very small delay (seconds)
+Q3.
+A 10-hour delay means fraudulent orders may already be shipped before fraud is detected.
+Impacts:
+Financial losses
+Refunds and chargebacks
+Loss of customer trust
+Additional investigation costs
+For example, if a fraudster places a $5,000 order at 2 PM and fraud is detected at midnight, the product may already be delivered.
+
+Task - 2
+Q1.
+# Create the orders topic: 6 partitions, replication factor 3
+kafka-topics.sh --create \
+  --topic orders \
+  --partitions 6 \
+  --replication-factor 3 \
+  --bootstrap-server localhost:9092
+
+# Verify it was created correctly
+kafka-topics.sh --describe \
+  --topic orders \
+  --bootstrap-server localhost:9092
+
+# Expected output shows:
+# Topic: orders  PartitionCount: 6  ReplicationFactor: 3
+# Partition: 0   Leader: 1   Replicas: 1,2,3   Isr: 1,2,3
+# Partition: 1   Leader: 2   Replicas: 2,3,1   Isr: 2,3,1
+# ... (6 partitions total, each on 3 brokers)
+Q2.
+Offset 5 in Partition 2 means:
+The message is stored in Partition 2
+It is the 6th message in that partition because offsets start from 0.
+Example:
+Partition 2
+Offset 0
+Offset 1
+Offset 2
+Offset 3
+Offset 4
+Offset 5
+Offset 5 identifies the exact location of that message.
+Q3.
+If the broker that is the leader for a partition fails, Kafka's controller — which monitors the cluster — detects the failure within a few seconds. It automatically promotes one of the in-sync replicas to become the new leader. Producers and consumers automatically reconnect to the new leader. The whole failover usually takes 5 to 30 seconds.
+Messages are not lost because the replica already has all the messages that were committed before the failure. The replication factor is exactly how you protect against broker failures it's not just a performance feature, it's your durability guarantee.
+If replication factor is 1 — no replicas — and that broker fails, the partition is unavailable and messages may be lost permanently until the broker recovers. That's why production Kafka clusters always use replication factor 2 or 3.
+
+Task-3
+Q1.
+from kafka import KafkaProducer
+import json
+import time
+
+producer = KafkaProducer(
+    bootstrap_servers=['localhost:9092'],
+    value_serializer=lambda v: json.dumps(v).encode('utf-8'),
+    key_serializer=lambda k: k.encode('utf-8')
+)
+
+for i in range(1, 11):   # publish 10 events
+    order_event = {
+        'order_id':    f'ORD-{i:04d}',    # ORD-0001, ORD-0002 ...
+        'customer_id': f'CUST-{(i % 3) + 1}',  # 3 different customers
+        'amount':      round(50 + i * 29.99, 2),
+        'timestamp':   '2024-01-15T14:32:00Z'
+    }
+    producer.send(
+        'orders',
+        key=order_event['customer_id'],   # key by customer for ordering
+        value=order_event
+    )
+    print(f"Published: {order_event['order_id']} for {order_event['customer_id']}")
+
+producer.flush()   # ensure all 10 messages are sent before exit
+print('All 10 order events published.')
+Q2.
+from kafka import KafkaConsumer
+import json
+
+consumer = KafkaConsumer(
+    'orders',
+    bootstrap_servers=['localhost:9092'],
+    group_id='order-reader-service',
+    value_deserializer=lambda v: json.loads(v.decode('utf-8')),
+    auto_offset_reset='earliest',   # read from beginning if no prior offset
+    enable_auto_commit=True         # auto-commit for this simple reader
+)
+
+print('Consumer started. Waiting for messages...')
+
+for message in consumer:
+    order = message.value
+    print(
+        f"order_id={order['order_id']}  "
+        f"partition={message.partition}  "
+        f"offset={message.offset}  "
+        f"customer_id={order['customer_id']}"
+    )
+
+Q3.
+Decoupling means producers and consumers work independently.
+Example:
+Order Service → sends order event.
+Consumers:
+Fraud Service
+Analytics Service
+Email Service
+The producer does not know who is reading the event.
+if we add another consumer tomorrow, no producer changes are needed.
+
+Task - 4
+Q1.
+| Consumer  | Partitions |
+| Consumer1 | P0, P1     |
+| Consumer2 | P2, P3     |
+| Consumer3 | P4, P5     |
+Q2.
+When the fourth consumer joins, Kafka triggers a rebalance — all consumers in the group briefly pause, Kafka reassigns partitions, and then they resume.
+After the rebalance, there are 3 partitions and 4 consumers. Kafka assigns one partition per consumer — which means 3 consumers each get a partition and the fourth consumer gets nothing. It just sits there, connected but idle, processing zero messages.
+This is a common mistake teams make when trying to scale up — they add more consumer instances thinking it'll increase throughput, but if they've already matched or exceeded the partition count, the extra consumers do nothing. The right fix is to increase the number of partitions first, then add consumers.
+Q3.
+Consumer groups are independent.
+Example:
+Group A = Fraud Service
+Group B = Analytics Service
+Both groups receive every message from the topic.
+One group's reading does not affect another group.
+
+Task - 5
+Q1.
+
