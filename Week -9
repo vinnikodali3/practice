@@ -1,0 +1,54 @@
+Topic - 1
+Q1.
+created an S3 bucket called healthcare-datalake and organized it using a raw layer structure
+s3://healthcare-datalake/
+└── raw/
+    └── claims/
+        └── 2024-01-15/
+            ├── claims_partner_a.csv
+            ├── claims_partner_b.csv
+            └── claims_partner_c.csv
+The three CSV files were uploaded to the raw layer because this layer stores the original source data exactly as received from external partners. This helps in auditing and troubleshooting if any data issues occur later in the pipeline.
+Q2.
+import boto3
+
+def check_file_exists(bucket, key):
+    s3 = boto3.client('s3')
+
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+        return True
+    except:
+        return False
+
+result = check_file_exists(
+    'healthcare-datalake',
+    'raw/claims/2024-01-15/claims_partner_a.csv'
+)
+print(result)        
+This function checks if a file exists before starting downstream processing.
+Q4.
+The raw layer should have versioning enabled because it contains the original source files received from partners. If a file is accidentally overwritten or deleted, previous versions can be restored.
+The curated layer contains processed data that can be regenerated from raw data if needed. Since it is recreated regularly, versioning is usually not necessary and can increase storage costs.
+
+Topic - 2
+Q1.
+I would first open the AWS Glue Console and create a new crawler. I would configure the data source as my S3 bucket and point it to the raw/claims/ folder where the incoming CSV files are stored.
+Next, I would assign an IAM role that has permission to read from the S3 bucket. Then I would either create a new Glue database or use an existing one. When I run the crawler, it automatically scans the files, identifies the schema, such as column names and data types, and creates a table in the Glue Data Catalog.
+After the table is created, other AWS services like Glue Jobs, Athena, and Redshift Spectrum can use this metadata without needing to know the exact S3 location.
+Q2.
+The Glue Job starts by reading the data from the Glue Data Catalog instead of directly reading from an S3 path. Once the data is loaded, I convert the DynamicFrame into a Spark DataFrame so I can use PySpark transformations.
+Then I standardize the column names. For example:
+ClaimID → claim_id
+PatientID → patient_id
+ClaimAmount → claim_amount
+I also clean the data if needed, such as removing null values or converting data types. Finally, I write the cleaned data into the cleaned/ folder in Parquet format.
+Parquet is preferred because it is a compressed columnar file format, which improves storage efficiency and query performance.
+Q3.
+A Glue DynamicFrame is a data structure provided by AWS Glue, while a DataFrame is the standard data structure used in Apache Spark.
+The main difference is that DynamicFrames are designed to work with messy or inconsistent data. They can automatically handle missing fields and schema differences without failing.
+A Spark DataFrame is more structured and provides better performance. It supports all Spark SQL functions and transformations, making it the preferred choice for data processing.
+Reading from the Glue Data Catalog makes the ETL process much more flexible and maintainable.
+If I hardcode an S3 path in every Glue script and later the bucket name or folder structure changes, I would have to update every script individually.
+With the Data Catalog, the Glue Job simply reads the table metadata. If the S3 location changes, I only update the Data Catalog, and all Glue Jobs continue to work without modifying the code.
+It also provides a centralized metadata repository that can be shared by multiple AWS services such as Glue, Athena, EMR, and Redshift Spectrum.
