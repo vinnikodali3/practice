@@ -53,3 +53,25 @@ Reading from the Glue Data Catalog makes the ETL process much more flexible and 
 If I hardcode an S3 path in every Glue script and later the bucket name or folder structure changes, I would have to update every script individually.
 With the Data Catalog, the Glue Job simply reads the table metadata. If the S3 location changes, I only update the Data Catalog, and all Glue Jobs continue to work without modifying the code.
 It also provides a centralized metadata repository that can be shared by multiple AWS services such as Glue, Athena, EMR, and Redshift Spectrum.
+Topic-3
+Q1.
+CREATE TABLE stg_claims (
+    claim_id VARCHAR(50),
+    patient_id VARCHAR(50),
+    claim_amount VARCHAR(50),
+    claim_date VARCHAR(50),
+    partner_code VARCHAR(20)
+);
+
+COPY stg_claims
+FROM 's3://healthcare-datalake/cleaned/claims/date=2024-01-15/'
+IAM_ROLE 'arn:aws:iam::123456789:role/RedshiftS3ReadRole'
+FORMAT AS PARQUET;
+Q3.
+The COPY command is specifically designed for bulk loading large datasets into Redshift.
+Instead of inserting one row at a time, COPY reads multiple files directly from Amazon S3 and distributes the work across all Redshift compute nodes. Because the loading happens in parallel, it is much faster and more efficient.
+On the other hand, the INSERT statement processes rows individually. For millions of records, this creates a lot of overhead, making the loading process slow and resource-intensive.
+That's why, in production environments, data engineers almost always use COPY for large data loads and reserve INSERT for small datasets or occasional manual updates.
+
+Topic - 4
+Q1.
